@@ -1,6 +1,7 @@
 class Maybe
-  def initialize(value)
+  def initialize(value, maybe_klass = Maybe)
     @value = value
+    @maybe_klass = maybe_klass
   end
 
   attr_reader :value
@@ -12,16 +13,41 @@ class Maybe
   # and have it not break
   def map(function)
     return self if value.nil?
-    return Maybe.new(compose(value, function)) if value.is_a? Proc
-    Maybe.new(function.curry.call(*value))
+    return maybe_klass.new(compose(value, function)) if value.is_a? Proc
+    maybe_klass.new(function.curry.call(*value))
+  end
+
+  # implements the applicative interface
+  # allows a way for wrapped functions to be applied
+  def apply(maybe_function)
+    return maybe_function if maybe_function.value.nil?
+    map(maybe_function.value)
   end
 
   private
+
+  attr_reader :maybe_klass
 
   def compose(f, g)
     lambda { |*args| f.call(g.call(*args))  }
   end
 end
+
+
+# Arrays can now apply lists of functions to lists of values.
+# Pretty powerful revelation!
+# All of our programs could be lists of functions that get applied to a value
+
+class Array
+  def apply(array_of_functions)
+    return array_of_functions if self.empty?
+    return self if array_of_functions.empty?
+    self.flat_map do |element|
+      array_of_functions.map { |func| func.call(element) }
+    end
+  end
+end
+
 
 # the interesting implication here is that we can write other objects
 # that have the same interface, but do different things

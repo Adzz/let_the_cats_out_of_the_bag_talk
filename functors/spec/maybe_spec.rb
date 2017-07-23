@@ -1,6 +1,8 @@
 require 'pry'
 require_relative '../lib/maybe'
 
+# These are not production ready specs, they were for quick iteration
+
 RSpec.describe Maybe do
   describe 'map' do
     let(:nothing) { Maybe.new(nil) }
