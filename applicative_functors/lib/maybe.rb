@@ -43,8 +43,32 @@ class Array
     return array_of_functions if self.empty?
     return self if array_of_functions.empty?
     self.flat_map do |element|
-      array_of_functions.map { |func| func.call(element) }
+      array_of_functions.map do |func|
+        if element.is_a? Proc
+          compose(element, func)
+        else
+          func.curry.call(element)
+        end
+      end
     end
+  end
+
+  def zip_apply(array_of_functions)
+    return array_of_functions if self.empty?
+    return self if array_of_functions.empty?
+    self.flat_map.with_index do |element, index|
+      if element.is_a? Proc
+        compose(element, array_of_functions[index])
+      else
+        array_of_functions[index].curry.call(element)
+      end
+    end
+  end
+
+  private
+
+  def compose(f, g)
+    lambda { |*args| f.call(g.call(*args))  }
   end
 end
 
@@ -76,3 +100,17 @@ hungry_cat = Cat.new({hungry: true})
 
 hungry_cat.feed_and(walk_cat) #=> Fed AND walked cat.
 hungry_cat.feed_and(pet_cat) #=> Fed AND petted cat.
+
+
+
+add_two = ->(x){ x + 2}
+
+find_middle_index = ->(array) { (0 + array.length - 1) / 2 }
+check_value = ->(array) { array[index] == value }
+
+
+
+
+
+
+

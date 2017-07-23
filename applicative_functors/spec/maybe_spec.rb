@@ -71,7 +71,8 @@ RSpec.describe Maybe do
   describe 'Applicative Functor Interface' do
     describe '<*>' do
       it 'mapping a maybe function over a maybe value' do
-        expect(maybe.map(Maybe.new(add_four, maybe_double))).to have_attribute
+        times = -> (x, y) { x * y }
+        expect([1,2,3].apply([1,2,3].apply([ times]))).to eq [1, 2, 3, 2, 4, 6, 3, 6, 9]
       end
     end
   end
