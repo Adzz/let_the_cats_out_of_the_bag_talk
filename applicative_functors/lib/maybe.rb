@@ -54,6 +54,7 @@ class Array
   end
 
   def zip_apply(array_of_functions)
+# we should ensure self is as long as array of functions really
     return array_of_functions if self.empty?
     return self if array_of_functions.empty?
     self.flat_map.with_index do |element, index|
@@ -107,9 +108,6 @@ add_two = ->(x){ x + 2}
 
 find_middle_index = ->(array) { (0 + array.length - 1) / 2 }
 check_value = ->(array) { array[index] == value }
-
-
-
 
 
 
