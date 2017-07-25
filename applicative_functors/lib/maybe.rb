@@ -88,6 +88,7 @@ class Cat
   end
 
   def feed_and(function)
+    return self if attrs.empty?
     new_attrs = function.call(@attrs)
     Cat.new(new_attrs.merge(hungry: false))
   end
@@ -110,5 +111,46 @@ find_middle_index = ->(array) { (0 + array.length - 1) / 2 }
 check_value = ->(array) { array[index] == value }
 
 
+# Some fun / dumb things you can do with the array of functions on array of values
+
+# y combinator
+y = ->(generator) do
+  ->(x) do
+    ->(*args) do
+      generator.call(x.call(x)).call(*args)
+    end
+  end.call(
+    ->(x) do
+      ->(*args) do
+        generator.call(x.call(x)).call(*args)
+      end
+    end
+  )
+end
 
 
+# factorial function in lambdas with y_comb
+
+factorial = y.call(
+  ->(callback) do
+    ->(arg) do
+      if arg.zero?
+        1
+      else
+        arg * callback.call(arg - 1)
+      end
+    end
+  end
+)
+
+
+# now we can do this:
+
+[*1..10].apply([factorial])
+
+# better use case would be to define our own objects and have them be operated on by lists of functions
+#
+#
+#
+# wowww is a hash an operational context? What happens if we monkey patch the hash class to have an apply
+# what would that look like, what would be the consequences?

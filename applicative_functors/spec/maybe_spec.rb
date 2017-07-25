@@ -23,12 +23,15 @@ RSpec.describe Maybe do
         end
       end
 
-      # this does what we want, but the test is bad. TODO fix!
       context 'mapping a wrapped function over a function' do
         it 'creates a new wrapped function that does both of the functions combined' do
           maybe = Maybe.new(add_four, maybe_double)
           composed_lambda = -> (*args) { maybe.value.call(add_four.call(*args)) }
-          expect(maybe_double).to receive(:new)
+          expect(maybe_double).to receive(:new).with(
+            -> (composed_lambda) do
+              expect(composed_lambda.(4)).to eq 12
+            end
+          )
           maybe.map(add_four)
         end
       end
@@ -46,7 +49,7 @@ RSpec.describe Maybe do
           id_function = -> (x) { x }
           # we should also really test that it receives _all_ attributes that the
           # original has, and none that it didn't have
-          # i.e. that they differ only in object id, not anything else.
+          # i.e. that theydiffer only in object id, not anything else.
           expect(maybe_double).to receive(:new).with(4).once
           maybe.map(id_function)
         end
