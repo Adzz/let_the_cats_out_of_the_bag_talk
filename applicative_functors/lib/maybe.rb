@@ -34,7 +34,7 @@ class Maybe
     map(func_that_returns_maybe).value
   end
 
-  # this is okay but we still have to know about which function call to use when
+  # ^ this is okay but we still have to know about which function call to use when
   # we could remove that decision process automagically?
 
   def chain(next_link)
