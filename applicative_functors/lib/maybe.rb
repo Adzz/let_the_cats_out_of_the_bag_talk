@@ -13,8 +13,13 @@ class Maybe
   # and have it not break
   def map(function)
     return self if value.nil?
-    return maybe_klass.new(compose(value, function)) if value.is_a? Proc
-    maybe_klass.new(function.curry.call(*value))
+    # this is the case when we are returned a funcion because of the curry, then we chain another
+    # function after it.
+    return maybe_klass.new(compose(value, function)) if value.is_a?(Proc) && function.is_a?(Proc)
+    # case where we curried a function now we wanna map a value over the curried function:
+    # we could do this, or, apply
+    return maybe_klass.new(function).map(value) if value.is_a?(Proc) && !function.is_a?(Proc)
+    maybe_klass.new(function.curry.call(value))
   end
 
   # implements the applicative interface
@@ -24,9 +29,33 @@ class Maybe
     map(maybe_function.value)
   end
 
+  def bind(func_that_returns_maybe)
+    return apply(func_that_returns_maybe).value if func_that_returns_maybe.is_a? Maybe
+    map(func_that_returns_maybe).value
+  end
+
+  # this is okay but we still have to know about which function call to use when
+  # we could remove that decision process automagically?
+
+  def chain(next_link)
+    if next_link.is_a? Maybe
+      flatten_result(apply(next_link))
+    else
+      flatten_result(map(next_link))
+    end
+  end
+
   private
 
   attr_reader :maybe_klass
+
+  def flatten_result(result)
+    if result.value.is_a? Maybe
+      return result.value
+    else
+      return result
+    end
+  end
 
   def compose(f, g)
     lambda { |*args| f.call(g.call(*args))  }
@@ -82,27 +111,40 @@ end
 # This is a simplified example of how a cat might
 # be mapable - and include a different sort of computational context
 
-class Cat
-  def initialize(attrs)
-    @attrs = attrs
+class Cat < Struct.new(:attrs); end
+
+class FoodBox
+  def initialize(cat)
+    @cat = cat
   end
 
-  def feed_and(function)
-    return self if attrs.empty?
-    new_attrs = function.call(@attrs)
-    Cat.new(new_attrs.merge(hungry: false))
+  def map(action)
+    return self if @cat.nil?
+    # return CatBox.new(compose(cat, function)) if value.is_a? Proc
+    new_cat = action.curry.call(@cat)
+    new_cat.attrs.merge!({hungry: false})
+    FoodBox.new(new_cat)
+  end
+
+  private
+
+  def compose(f, g)
+    lambda { |*args| f.call(g.call(*args))  }
   end
 end
 
-
-walk_cat = -> (cat_attrs) { cat_attrs.merge({walked: true}) }
-pet_cat  = -> (cat_attrs) { cat_attrs.merge({petted: true}) }
+walk_cat     = -> (cat) { Cat.new(cat.attrs.merge({walked: true})) }
+pet_cat      = -> (cat) { Cat.new(cat.attrs.merge({petted: true})) }
 
 hungry_cat = Cat.new({hungry: true})
+fed_cat = FoodBox.new(hungry_cat)
+fed_cat.map(walk_cat) #=> Fed AND walked cat.
+fed_cat.map(pet_cat) #=> Fed AND petted cat.
 
-hungry_cat.feed_and(walk_cat) #=> Fed AND walked cat.
-hungry_cat.feed_and(pet_cat) #=> Fed AND petted cat.
+is_rescue_cat  = -> (cat, rescue_list) { rescue_list.include? cat }
 
+# example of a function to be curried
+# also example of a function that doesn't return a cat - is this an issue? is this why we need monads?
 
 
 add_two = ->(x){ x + 2}
