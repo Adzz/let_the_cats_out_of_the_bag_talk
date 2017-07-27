@@ -105,14 +105,6 @@ class Array
     end
   end
 
-  def bind(funcs_that_return_arrays_of_functions)
-    self.flat_map do |element|
-      funcs_that_return_arrays_of_functions.map do |func|
-        apply([func])
-      end.flatten
-    end.flatten
-  end
-
   private
 
   def compose(f, g)
