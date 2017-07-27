@@ -6,18 +6,9 @@ class Maybe
 
   attr_reader :value
 
-  # implements a functor interface
-  # we curry the call to allow a function
-  # with more than one arg to be partially applied
-  # that allows us to do things like Maybe.new(1).map(-> (x, y){ x * y })
-  # and have it not break
   def map(function)
     return self if value.nil?
-    # this is the case when we are returned a funcion because of the curry, then we chain another
-    # function after it.
     return maybe_klass.new(compose(value, function)) if value.is_a?(Proc) && function.is_a?(Proc)
-    # case where we curried a function now we wanna map a value over the curried function:
-    # we could do this, or, apply
     return maybe_klass.new(function).map(value) if value.is_a?(Proc) && !function.is_a?(Proc)
     maybe_klass.new(function.curry.call(value))
   end
@@ -25,7 +16,7 @@ class Maybe
   # implements the applicative interface
   # allows a way for wrapped functions to be applied
   def apply(maybe_function)
-    return maybe_function if maybe_function.value.nil?
+    return self if maybe_function.value.nil?
     map(maybe_function.value)
   end
 
@@ -69,7 +60,7 @@ end
 
 class Array
   def apply(array_of_functions)
-    return array_of_functions if self.empty?
+    return self if self.empty?
     return self if array_of_functions.empty?
     self.flat_map do |element|
       array_of_functions.map do |func|
@@ -93,6 +84,14 @@ class Array
         array_of_functions[index].curry.call(element)
       end
     end
+  end
+
+  def bind(funcs_that_return_arrays_of_functions)
+    self.flat_map do |element|
+      funcs_that_return_arrays_of_functions.map do |func|
+        apply([func])
+      end.flatten
+    end.flatten
   end
 
   private
@@ -188,7 +187,7 @@ factorial = y.call(
 
 # now we can do this:
 
-[*1..10].apply([factorial])
+[*1..10].apply([factorial, factorial])
 
 # better use case would be to define our own objects and have them be operated on by lists of functions
 #

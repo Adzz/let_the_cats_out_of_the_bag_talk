@@ -1,52 +1,82 @@
 class Maybe
-  def initialize(value)
+  def initialize(value, maybe_klass = Maybe)
     @value = value
+    @maybe_klass = maybe_klass
   end
 
   attr_reader :value
 
-  # implements a functor interface
-  # we curry the call to allow a function
-  # with more than one arg to be partially applied
-  # that allows us to do things like Maybe.new(1).map(-> (x, y){ x * y })
-  # and have it not break
   def map(function)
     return self if value.nil?
-    return Maybe.new(compose(value, function)) if value.is_a? Proc
-    Maybe.new(function.curry.call(*value))
+    return maybe_klass.new(compose(value, function)) if value.is_a?(Proc) && function.is_a?(Proc)
+    # return maybe_klass.new(function).map(value) if value.is_a?(Proc) && !function.is_a?(Proc)
+    maybe_klass.new(function.curry.call(value))
+  end
+
+  def apply(maybe_function)
+    return self if maybe_function.value.nil?
+    map(maybe_function.value)
   end
 
   private
 
+  attr_reader :maybe_klass
+
   def compose(f, g)
-    lambda { |*args| f.call(g.call(*args))  }
-  end
-end
-
-# the interesting implication here is that we can write other objects
-# that have the same interface, but do different things
-# Maybe abstracts away a nil check,
-# we could instead abstract away a cat feeding, for example.
-
-# This is a simplified example of how a cat might
-# be mapable - and include a different sort of computational context
-
-class Cat
-  def initialize(attrs)
-    @attrs = attrs
-  end
-
-  def feed_and(function)
-    new_attrs = function.call(@attrs)
-    Cat.new(new_attrs.merge(hungry: false))
+    lambda { |*args| f.call(*g.call(*args))  }
   end
 end
 
 
-walk_cat = -> (cat_attrs) { cat_attrs.merge({walked: true}) }
-pet_cat  = -> (cat_attrs) { cat_attrs.merge({petted: true}) }
+nothing   = Maybe.new(nil)
+something = Maybe.new(50)
+times_two = ->(x) { x * 2}
+plus_four = ->(x) { x + 4}
+divide    = ->(x, y) { x / y }
 
-hungry_cat = Cat.new({hungry: true})
+# Example 1
+# nil doesn't break stuff
+# maintain the identity law
 
-hungry_cat.feed_and(walk_cat) #=> Fed AND walked cat.
-hungry_cat.feed_and(pet_cat) #=> Fed AND petted cat.
+nothing.map(times_two)
+nothing.map(times_two).map(plus_four)
+
+
+# Example 2
+# it does actually do stuff
+# and it's chainable
+
+something.map(times_two)
+something.map(times_two).map(plus_four)
+
+# Example 3
+# if we don't have enough params
+# function is partially applied
+
+something.map(divide)
+
+# we can tell because...
+
+something.map(divide).value.call(10)
+
+# .... And if we then map a function over that, those functions are composed (line 11)
+something.map(divide).map(plus_four)
+# as seen here:
+something.map(divide).map(plus_four).value.call(6)
+
+# But there is a problem. we dont want to do ^
+# Once we get a lambda inside a Maybe, how can we apply a new value to it so it cant resolve?
+
+# We could uncomment line 12 and do this, but that feels a bit weird.
+# something.map(divide).map(plus_four).map(6)
+
+# What we really want to do is pass that now wrapped function to our wrapped value.
+# Well to do that we need an Applicative!
+
+something.map(divide).map(plus_four)
+
+
+
+
+
+
