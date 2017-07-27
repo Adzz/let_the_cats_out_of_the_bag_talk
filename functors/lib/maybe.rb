@@ -22,6 +22,24 @@ class Maybe
   end
 end
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ====================== EXAMPLES ======================================== #
 
 nothing   = Maybe.new(nil)
@@ -38,12 +56,58 @@ nothing.map(times_two)
 nothing.map(times_two).map(plus_four)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Example 2
 # it does actually do stuff
 # and it's chainable
 
 something.map(times_two)
 something.map(times_two).map(plus_four)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Example 3
 # if we don't have enough params
@@ -60,8 +124,27 @@ something.map(divide).map(plus_four)
 # as seen here:
 something.map(divide).map(plus_four).value.call(6)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # But there is a problem. we dont want to do ^
-# Once we get a lambda inside a Maybe, how can we apply a new value to it so it cant resolve?
+# Once we get a lambda inside a Maybe, how can we apply it to a value?
 
 # We could uncomment line 12 and do this, but that feels a bit weird.
 # we've got a number acting like a function, and it's unwrapped again.
@@ -72,7 +155,7 @@ something.map(divide).map(plus_four).value.call(6)
 # What we really want to do is pass that now wrapped function to our wrapped value.
 #
 
-Maybe.new(6).map(something.map(divide).map(plus_four))
+# Maybe.new(6).map(something.map(divide).map(plus_four))
 
 
 
