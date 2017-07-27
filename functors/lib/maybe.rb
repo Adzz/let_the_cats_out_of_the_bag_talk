@@ -13,11 +13,6 @@ class Maybe
     maybe_klass.new(function.curry.call(value))
   end
 
-  def apply(maybe_function)
-    return self if maybe_function.value.nil?
-    map(maybe_function.value)
-  end
-
   private
 
   attr_reader :maybe_klass
@@ -27,6 +22,7 @@ class Maybe
   end
 end
 
+# ====================== EXAMPLES ======================================== #
 
 nothing   = Maybe.new(nil)
 something = Maybe.new(50)
@@ -68,12 +64,15 @@ something.map(divide).map(plus_four).value.call(6)
 # Once we get a lambda inside a Maybe, how can we apply a new value to it so it cant resolve?
 
 # We could uncomment line 12 and do this, but that feels a bit weird.
+# we've got a number acting like a function, and it's unwrapped again.
+# so if that value was being fed from another function that might return nil.. we back to square 1!
+
 # something.map(divide).map(plus_four).map(6)
 
 # What we really want to do is pass that now wrapped function to our wrapped value.
-# Well to do that we need an Applicative!
+#
 
-something.map(divide).map(plus_four)
+Maybe.new(6).map(something.map(divide).map(plus_four))
 
 
 

@@ -13,27 +13,9 @@ class Maybe
     maybe_klass.new(function.curry.call(value))
   end
 
-  # implements the applicative interface
-  # allows a way for wrapped functions to be applied
   def apply(maybe_function)
     return self if maybe_function.value.nil?
     map(maybe_function.value)
-  end
-
-  def bind(func_that_returns_maybe)
-    return apply(func_that_returns_maybe).value if func_that_returns_maybe.is_a? Maybe
-    map(func_that_returns_maybe).value
-  end
-
-  # ^ this is okay but we still have to know about which function call to use when
-  # we could remove that decision process automagically?
-
-  def chain(next_link)
-    if next_link.is_a? Maybe
-      flatten_result(apply(next_link))
-    else
-      flatten_result(map(next_link))
-    end
   end
 
   private
@@ -53,10 +35,48 @@ class Maybe
   end
 end
 
+# ====================== EXAMPLES ======================================== #
 
-# Arrays can now apply lists of functions to lists of values.
-# Pretty powerful revelation!
-# All of our programs could be lists of functions that get applied to a value
+nothing             = Maybe.new(nil)
+something           = Maybe.new(50)
+times_two           = ->(x) { x * 2}
+plus_four           = ->(x) { x + 4}
+times_two_plus_four = ->(x) { (x * 2) + 4}
+divide              = ->(x, y) { x / y }
+
+# Applicative laws: 1. Identity
+# we get the same answer as if we mapped an unwrapped function over the functor
+# (in the fp sense, not the object identity sense. Pointer in mem is different)
+#  but the value is the same)
+
+something.map(times_two)
+# is the same as:
+something.apply(Maybe.new(times_two))
+
+# Next Law is that it's still associative
+# in this sense:
+
+something.apply(Maybe.new(times_two)).apply(Maybe.new(plus_four))
+# is the same as:
+something.apply(Maybe.new(times_two_plus_four))
+
+
+# But there is a stumbling block...
+# What if the function we are applying RETURNS A WRAPPED MAYBE?
+
+stumbling_block = -> (x){ Maybe.new(x + 1) }
+
+# this works okay, we get a nested maybe
+Maybe.new(5).apply(Maybe.new(stumbling_block))
+
+# but what if we try to chain that?
+Maybe.new(5).bind(Maybe.new(stumbling_block)).apply(Maybe.new(stumbling_block))
+
+# Oh no. :(
+# so we need something else....
+
+
+# =============================== AN ASIDE ===================================================#
 
 class Array
   def apply(array_of_functions)
@@ -74,7 +94,6 @@ class Array
   end
 
   def zip_apply(array_of_functions)
-# we should ensure self is as long as array of functions really
     return array_of_functions if self.empty?
     return self if array_of_functions.empty?
     self.flat_map.with_index do |element, index|
@@ -101,59 +120,6 @@ class Array
   end
 end
 
-
-# the interesting implication here is that we can write other objects
-# that have the same interface, but do different things
-# Maybe abstracts away a nil check,
-# we could instead abstract away a cat feeding, for example.
-
-# This is a simplified example of how a cat might
-# be mapable - and include a different sort of computational context
-
-class Cat < Struct.new(:attrs); end
-
-class FoodBox
-  def initialize(cat)
-    @cat = cat
-  end
-
-  def map(action)
-    return self if @cat.nil?
-    # return CatBox.new(compose(cat, function)) if value.is_a? Proc
-    new_cat = action.curry.call(@cat)
-    new_cat.attrs.merge!({hungry: false})
-    FoodBox.new(new_cat)
-  end
-
-  private
-
-  def compose(f, g)
-    lambda { |*args| f.call(g.call(*args))  }
-  end
-end
-
-walk_cat     = -> (cat) { Cat.new(cat.attrs.merge({walked: true})) }
-pet_cat      = -> (cat) { Cat.new(cat.attrs.merge({petted: true})) }
-
-hungry_cat = Cat.new({hungry: true})
-fed_cat = FoodBox.new(hungry_cat)
-fed_cat.map(walk_cat) #=> Fed AND walked cat.
-fed_cat.map(pet_cat) #=> Fed AND petted cat.
-
-is_rescue_cat  = -> (cat, rescue_list) { rescue_list.include? cat }
-
-# example of a function to be curried
-# also example of a function that doesn't return a cat - is this an issue? is this why we need monads?
-
-
-add_two = ->(x){ x + 2}
-
-find_middle_index = ->(array) { (0 + array.length - 1) / 2 }
-check_value = ->(array) { array[index] == value }
-
-
-# Some fun / dumb things you can do with the array of functions on array of values
-
 # y combinator
 y = ->(generator) do
   ->(x) do
@@ -169,7 +135,6 @@ y = ->(generator) do
   )
 end
 
-
 # factorial function in lambdas with y_comb
 
 factorial = y.call(
@@ -183,15 +148,7 @@ factorial = y.call(
     end
   end
 )
-
-
 # now we can do this:
 
-[*1..10].apply([factorial, factorial])
-
-# better use case would be to define our own objects and have them be operated on by lists of functions
-#
-#
-#
-# wowww is a hash an operational context? What happens if we monkey patch the hash class to have an apply
-# what would that look like, what would be the consequences?
+[*1..10].apply([factorial])
+[*1..10].apply([factorial]).apply([factorial])
