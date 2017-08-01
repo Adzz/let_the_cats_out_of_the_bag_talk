@@ -9,7 +9,6 @@ class Maybe
   def map(function)
     return self if value.nil?
     return maybe_klass.new(compose(value, function)) if value.is_a?(Proc) && function.is_a?(Proc)
-    return maybe_klass.new(function).map(value) if value.is_a?(Proc) && !function.is_a?(Proc)
     maybe_klass.new(function.curry.call(value))
   end
 
@@ -22,23 +21,28 @@ class Maybe
 
   attr_reader :maybe_klass
 
-  def flatten_result(result)
-    if result.value.is_a? Maybe
-      return result.value
-    else
-      return result
-    end
-  end
-
   def compose(f, g)
     lambda { |*args| f.call(g.call(*args))  }
   end
 end
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ====================== EXAMPLES ======================================== #
 
 nothing             = Maybe.new(nil)
-something           = Maybe.new(50)
+fifty           = Maybe.new(50)
 times_two           = ->(x) { x * 2}
 plus_four           = ->(x) { x + 4}
 times_two_plus_four = ->(x) { (x * 2) + 4}
@@ -49,16 +53,16 @@ divide              = ->(x, y) { x / y }
 # (in the fp sense, not the object identity sense. Pointer in mem is different)
 #  but the value is the same)
 
-something.map(times_two)
+fifty.map(times_two)
 # is the same as:
-something.apply(Maybe.new(times_two))
+fifty.apply(Maybe.new(times_two))
 
 # Next Law is that it's still associative
 # in this sense:
 
-something.apply(Maybe.new(times_two)).apply(Maybe.new(plus_four))
+fifty.apply(Maybe.new(times_two)).apply(Maybe.new(plus_four))
 # is the same as:
-something.apply(Maybe.new(times_two_plus_four))
+fifty.apply(Maybe.new(times_two_plus_four))
 
 
 # But there is a stumbling block...
@@ -70,10 +74,10 @@ stumbling_block = -> (x){ Maybe.new(x + 1) }
 Maybe.new(5).apply(Maybe.new(stumbling_block))
 
 # but what if we try to chain that?
-Maybe.new(5).bind(Maybe.new(stumbling_block)).apply(Maybe.new(stumbling_block))
+Maybe.new(5).apply(Maybe.new(stumbling_block)).apply(Maybe.new(stumbling_block))
 
 # Oh no. :(
-# so we need something else....
+# so we need fifty else....
 
 
 # =============================== AN ASIDE ===================================================#
@@ -143,4 +147,45 @@ factorial = y.call(
 # now we can do this:
 
 [*1..10].apply([factorial])
-[*1..10].apply([factorial]).apply([factorial])
+
+
+# ======== INTRO ============= #
+# Preface the talk by saying that from experience some of the concepts can take a little while
+# before they click. So if it's you're first time hearing about them, try and absorb what you can
+# let it wash over o it's familiar and don't be disheartened if it doesn't make complete sense right
+# away.
+
+# If you have heard of it before a little, I'm hoping this might be the talk that makes it click,
+# or at least prompts some curiosity to look further
+
+# We will be covering a lot of ground, so there is a lot more to learn aroud the why of this
+
+# What is the application of cat theory monads etc? - any time you face uncertainty.
+
+# open with an intro about what it is. why. Also shorter, no live code. Slower examples. live code in
+# slides
+
+# Parent Child analogy.
+# kittens and mother kittens?
+
+
+# Use Arrays for the code examples - maybe loop back to Maybe implementation after. Could
+# talk about the power of knowing the hard interface you have to implement, how easy it makes it
+# to implement a new example when you know what it has to do.
+# probably a whole talk in that on its own.
+
+  # implement chain for arrays
+# Skip the implementation, but say you'l provide links later.
+
+# The currying and partial application was a stumbling block in terms of explanations
+# lots of people wont know what they are - do we spend time explaining it, or do we ignore it as an
+# implementation detail
+
+
+
+
+
+
+
+
+

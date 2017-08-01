@@ -52,7 +52,50 @@ class Maybe
     lambda { |*args| f.call(g.call(*args))  }
   end
 end
+
+
+
+
+
+
+
+
 # ====================== EXAMPLES ======================================== #
+
+
+nothing             = Maybe.new(nil)
+fifty               = Maybe.new(50)
+times_two           = ->(x) { x * 2}
+plus_four           = ->(x) { x + 4}
+times_two_plus_four = ->(x) { (x * 2) + 4}
+divide              = ->(x, y) { x / y }
+
+
+returns_nil         = -> (x) { nil }
+
+
+stumbling_block = -> (x){ Maybe.new(x + 1) }
+
+# tada!
+Maybe.new(5).bind(Maybe.new(stumbling_block)).bind(Maybe.new(stumbling_block))
+
+# to make it a bit nicer so we dont have to think about whethe we need to apply.
+# bind or map, we can use chain!
+
+Maybe.new(5).chain(Maybe.new(stumbling_block)).chain(Maybe.new(stumbling_block))
+
+# And we are still protected from nil!
+
+Maybe.new(5).chain(Maybe.new(stumbling_block)).chain(returns_nil).chain(Maybe.new(stumbling_block))
+
+
+
+
+
+
+
+
+
 
 
 
@@ -98,6 +141,7 @@ class Array
     end
   end
 
+  # flat_map [[[]]].flatten
   def bind(funcs_that_return_arrays_of_functions)
     self.flat_map do |element|
       funcs_that_return_arrays_of_functions.map do |func|
@@ -112,4 +156,8 @@ class Array
     lambda { |*args| f.call(g.call(*args))  }
   end
 end
+
+
+
+
 

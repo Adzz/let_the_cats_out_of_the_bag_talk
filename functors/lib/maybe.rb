@@ -9,7 +9,7 @@ class Maybe
   def map(function)
     return self if value.nil?
     return maybe_klass.new(compose(value, function)) if value.is_a?(Proc) && function.is_a?(Proc)
-    # return maybe_klass.new(function).map(value) if value.is_a?(Proc) && !function.is_a?(Proc)
+    return maybe_klass.new(function).map(value) if value.is_a?(Proc) && !function.is_a?(Proc)
     maybe_klass.new(function.curry.call(value))
   end
 
@@ -35,15 +35,14 @@ end
 
 
 
-
-
+# go slow!
 
 
 
 # ====================== EXAMPLES ======================================== #
 
 nothing   = Maybe.new(nil)
-something = Maybe.new(50)
+fifty = Maybe.new(50)
 times_two = ->(x) { x * 2}
 plus_four = ->(x) { x + 4}
 divide    = ->(x, y) { x / y }
@@ -79,8 +78,8 @@ nothing.map(times_two).map(plus_four)
 # it does actually do stuff
 # and it's chainable
 
-something.map(times_two)
-something.map(times_two).map(plus_four)
+fifty.map(times_two)
+fifty.map(times_two).map(plus_four)
 
 
 
@@ -113,16 +112,16 @@ something.map(times_two).map(plus_four)
 # if we don't have enough params
 # function is partially applied
 
-something.map(divide)
+fifty.map(divide)
 
 # we can tell because...
 
-something.map(divide).value.call(10)
+fifty.map(divide).value.call(10)
 
 # .... And if we then map a function over that, those functions are composed (line 11)
-something.map(divide).map(plus_four)
+fifty.map(divide).map(plus_four)
 # as seen here:
-something.map(divide).map(plus_four).value.call(6)
+fifty.map(divide).map(plus_four).value.call(6)
 
 
 
@@ -150,12 +149,12 @@ something.map(divide).map(plus_four).value.call(6)
 # we've got a number acting like a function, and it's unwrapped again.
 # so if that value was being fed from another function that might return nil.. we back to square 1!
 
-# something.map(divide).map(plus_four).map(6)
+fifty.map(divide).map(plus_four).map(6)
 
 # What we really want to do is pass that now wrapped function to our wrapped value.
-#
 
-# Maybe.new(6).map(something.map(divide).map(plus_four))
+
+Maybe.new(6).map(fifty.map(divide).map(plus_four))
 
 
 
