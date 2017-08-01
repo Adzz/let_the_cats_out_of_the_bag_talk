@@ -42,7 +42,7 @@ end
 # ====================== EXAMPLES ======================================== #
 
 nothing             = Maybe.new(nil)
-fifty           = Maybe.new(50)
+fifty               = Maybe.new(50)
 times_two           = ->(x) { x * 2}
 plus_four           = ->(x) { x + 4}
 times_two_plus_four = ->(x) { (x * 2) + 4}
