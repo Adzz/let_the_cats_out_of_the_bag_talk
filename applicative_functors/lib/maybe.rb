@@ -74,79 +74,10 @@ stumbling_block = -> (x){ Maybe.new(x + 1) }
 Maybe.new(5).apply(Maybe.new(stumbling_block))
 
 # but what if we try to chain that?
-Maybe.new(5).apply(Maybe.new(stumbling_block)).apply(Maybe.new(stumbling_block))
+# Maybe.new(5).apply(Maybe.new(stumbling_block)).apply(Maybe.new(stumbling_block))
 
 # Oh no. :(
 # so we need fifty else....
-
-
-# =============================== AN ASIDE ===================================================#
-
-class Array
-  def apply(array_of_functions)
-    return self if self.empty?
-    return self if array_of_functions.empty?
-    self.flat_map do |element|
-      array_of_functions.map do |func|
-        if element.is_a? Proc
-          compose(element, func)
-        else
-          func.curry.call(element)
-        end
-      end
-    end
-  end
-
-  def zip_apply(array_of_functions)
-    return array_of_functions if self.empty?
-    return self if array_of_functions.empty?
-    self.flat_map.with_index do |element, index|
-      if element.is_a? Proc
-        compose(element, array_of_functions[index])
-      else
-        array_of_functions[index].curry.call(element)
-      end
-    end
-  end
-
-  private
-
-  def compose(f, g)
-    lambda { |*args| f.call(g.call(*args))  }
-  end
-end
-
-# y combinator
-y = ->(generator) do
-  ->(x) do
-    ->(*args) do
-      generator.call(x.call(x)).call(*args)
-    end
-  end.call(
-    ->(x) do
-      ->(*args) do
-        generator.call(x.call(x)).call(*args)
-      end
-    end
-  )
-end
-
-# factorial function in lambdas with y_comb
-
-factorial = y.call(
-  ->(callback) do
-    ->(arg) do
-      if arg.zero?
-        1
-      else
-        arg * callback.call(arg - 1)
-      end
-    end
-  end
-)
-# now we can do this:
-
-[*1..10].apply([factorial])
 
 
 # ======== INTRO ============= #
