@@ -33,37 +33,46 @@ class Array
   end
 end
 
-# y combinator
-y = ->(generator) do
-  ->(x) do
-    ->(*args) do
-      generator.call(x.call(x)).call(*args)
-    end
-  end.call(
-    ->(x) do
-      ->(*args) do
-        generator.call(x.call(x)).call(*args)
-      end
-    end
-  )
-end
 
-# factorial function in lambdas with y_comb
 
-factorial = y.call(
-  ->(callback) do
-    ->(arg) do
-      if arg.zero?
-        1
-      else
-        arg * callback.call(arg - 1)
-      end
-    end
-  end
-)
-# now we can do this:
 
-[*1..10].apply([factorial])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -166,6 +175,32 @@ fifty.apply([times_two]).apply([plus_four]) == fifty.apply([times_two_plus_four]
 
 
 
+# If we apply a list of functions to one value
+# we get the result of each function being
+# applied to each value:
+
+fifty.apply([times_two, plus_four])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -226,6 +261,14 @@ constructor = -> (x){ [x + 1] }
 
 
 
+
+
+
+
+
+
+
+
 # ZIP APPLY EXAMPLE
 # ===================
 
@@ -234,15 +277,37 @@ constructor = -> (x){ [x + 1] }
 
 
 
+# y combinator
+y = ->(generator) do
+  ->(x) do
+    ->(*args) do
+      generator.call(x.call(x)).call(*args)
+    end
+  end.call(
+    ->(x) do
+      ->(*args) do
+        generator.call(x.call(x)).call(*args)
+      end
+    end
+  )
+end
 
+# factorial function in lambdas with y_comb
 
+factorial = y.call(
+  ->(callback) do
+    ->(arg) do
+      if arg.zero?
+        1
+      else
+        arg * callback.call(arg - 1)
+      end
+    end
+  end
+)
+# now we can do this:
 
-
-
-
-
-
-
+[*1..10].apply([factorial])
 
 
 
