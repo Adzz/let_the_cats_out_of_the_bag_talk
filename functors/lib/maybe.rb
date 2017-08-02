@@ -9,7 +9,7 @@ class Maybe
   def map(function)
     return self if value.nil?
     return maybe_klass.new(compose(value, function)) if value.is_a?(Proc) && function.is_a?(Proc)
-    return maybe_klass.new(function).map(value) if value.is_a?(Proc) && !function.is_a?(Proc)
+    # return maybe_klass.new(function).map(value) if value.is_a?(Proc) && !function.is_a?(Proc)
     maybe_klass.new(function.curry.call(value))
   end
 
@@ -42,10 +42,11 @@ end
 # ====================== EXAMPLES ======================================== #
 
 nothing   = Maybe.new(nil)
-fifty = Maybe.new(50)
+fifty     = Maybe.new(50)
 times_two = ->(x) { x * 2}
 plus_four = ->(x) { x + 4}
 divide    = ->(x, y) { x / y }
+identity  = ->(x) { x }
 
 # Example 1
 # nil doesn't break stuff
@@ -55,6 +56,12 @@ nothing.map(times_two)
 nothing.map(times_two).map(plus_four)
 
 
+# Law 1
+# if we map the id function over a functor,
+# the functor that we get back should be the same as the original functor.
+
+fifty.map(identity)
+nothing.map(identity)
 
 
 
@@ -149,12 +156,12 @@ fifty.map(divide).map(plus_four).value.call(6)
 # we've got a number acting like a function, and it's unwrapped again.
 # so if that value was being fed from another function that might return nil.. we back to square 1!
 
-fifty.map(divide).map(plus_four).map(6)
+# fifty.map(divide).map(plus_four).map(6)
 
 # What we really want to do is pass that now wrapped function to our wrapped value.
 
 
-Maybe.new(6).map(fifty.map(divide).map(plus_four))
+# Maybe.new(6).map(fifty.map(divide).map(plus_four))
 
 
 
