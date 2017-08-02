@@ -15,37 +15,6 @@ class Array
   end
 end
 
-# y combinator
-y = ->(generator) do
-  ->(x) do
-    ->(*args) do
-      generator.call(x.call(x)).call(*args)
-    end
-  end.call(
-    ->(x) do
-      ->(*args) do
-        generator.call(x.call(x)).call(*args)
-      end
-    end
-  )
-end
-
-# factorial function in lambdas with y_comb
-
-factorial = y.call(
-  ->(callback) do
-    ->(arg) do
-      if arg.zero?
-        1
-      else
-        arg * callback.call(arg - 1)
-      end
-    end
-  end
-)
-# now we can do this:
-
-# [*1..10].apply([factorial])
 
 
 # go slow!
@@ -192,7 +161,7 @@ fifty.fmap(times_two).fmap(plus_four)
   #   ->(y){ x + y }
   # end
 
-  # add_ten = add(10) #=> ->(y) { y + 10 }
+  # add_ten = add(10) => ->(y) { y + 10 }
   # add_ten.call(5) #=> 15
   # =============================================#
 
@@ -206,8 +175,25 @@ fifty.fmap(divide).first.call(10)
 
 # .... And if we then fmap a function over that, those functions are composed (line 11)
 fifty.fmap(divide).fmap(plus_four)
-# as seen here:
-fifty.fmap(divide).fmap(plus_four).first.call(6)
+
+  # =============== ASIDE ==========================#
+  # What does it mean to compose a function?
+  # Combine one or more functions such that
+  # when you execute the composed function it will
+  # return the same result as if you executed them each separately
+
+  # NB: COMPOSED FUNCTIONS WORK FROM RIGHT TO LEFT !
+
+
+# Just to sort of prove they are composed
+# if we access the inner value we and call it with 6
+# then 6 gets added to 4, which makes 10, which we then divide 50 by
+
+fifty.fmap(divide) # at this point we get [->(y) { 50 / y }]
+
+fifty.fmap(divide).fmap(plus_four) # at this point we get: [->(y){ 50 / y + 4 } ]
+
+fifty.fmap(divide).fmap(plus_four).first.call(6) # then we give it 6: [->(6) { 50 / 6 + 4 } ]
 
 # Note our answer is because when we compose
 # we execute from right to left - inner to out.
@@ -321,3 +307,35 @@ fifty.fmap(times_two).fmap(plus_four) == fifty.fmap(times_two_plus_four)
 
 
 
+
+# y combinator
+y = ->(generator) do
+  ->(x) do
+    ->(*args) do
+      generator.call(x.call(x)).call(*args)
+    end
+  end.call(
+    ->(x) do
+      ->(*args) do
+        generator.call(x.call(x)).call(*args)
+      end
+    end
+  )
+end
+
+# factorial function in lambdas with y_comb
+
+factorial = y.call(
+  ->(callback) do
+    ->(arg) do
+      if arg.zero?
+        1
+      else
+        arg * callback.call(arg - 1)
+      end
+    end
+  end
+)
+# now we can do this:
+
+# [*1..10].apply([factorial])

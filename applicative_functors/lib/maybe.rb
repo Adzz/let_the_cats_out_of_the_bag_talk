@@ -89,7 +89,7 @@ Maybe.new(5).apply(Maybe.new(stumbling_block))
 # If you have heard of it before a little, I'm hoping this might be the talk that makes it click,
 # or at least prompts some curiosity to look further
 
-# We will be covering a lot of ground, so there is a lot more to learn aroud the why of this
+# We will be covering a lot of ground, so there is a lot more to learn around the why of this
 
 # What is the application of cat theory monads etc? - any time you face uncertainty.
 

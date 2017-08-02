@@ -69,14 +69,13 @@ identity  = ->(x) { x }
 stumble   = ->(x) { nil }
 constructor = -> (x){ [x + 1] }
 times_two_plus_four = ->(x){ (x * 2) + 4}
-
+monad_identity = ->(x) { [x] }
 
 # [5].apply([constructor]).apply([constructor]) #:(
 
 # tada!
 
-[5].bind([constructor]).bind([constructor])
-
+fifty.bind([constructor]).bind([constructor])
 
 
 
@@ -117,10 +116,102 @@ times_two_plus_four = ->(x){ (x * 2) + 4}
 # to make it a bit nicer so we dont have to think about whether we need to apply.
 # bind or map, we can use chain!
 
-[5].chain([constructor]).chain(constructor)
+fifty.chain([constructor]).chain(constructor)
 
 # And we are still protected from nil!
 
-[5].chain([constructor]).chain(stumble).chain([stumble]).chain([constructor])
+fifty.chain([constructor]).chain(stumble).chain([stumble]).chain([constructor])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Monad Laws
+#  Left Identity:
+fifty.bind([plus_four]) == [50].fmap(plus_four)
+
+# Right identity
+fifty.bind([monad_identity]) == fifty
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
