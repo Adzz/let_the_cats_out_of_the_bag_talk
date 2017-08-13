@@ -161,7 +161,7 @@ fifty.fmap(times_two).fmap(plus_four)
   #   ->(y){ x + y }
   # end
 
-  # add_ten = add(10) => ->(y) { y + 10 }
+  # add_ten = add(10) #=> ->(y) { 10 + y }
   # add_ten.call(5) #=> 15
   # =============================================#
 
@@ -173,14 +173,9 @@ fifty.fmap(divide)
 
 fifty.fmap(divide).first.call(10)
 
-# .... And if we then fmap a function over that, those functions are composed (line 11)
+# .... And if we then fmap a function over that, those functions
+# are composed (line 11)
 fifty.fmap(divide).fmap(plus_four)
-
-  # =============== ASIDE ==========================#
-  # What does it mean to compose a function?
-  # Combine one or more functions such that
-  # when you execute the composed function it will
-  # return the same result as if you executed them each separately
 
   # NB: COMPOSED FUNCTIONS WORK FROM RIGHT TO LEFT !
 
@@ -189,14 +184,7 @@ fifty.fmap(divide).fmap(plus_four)
 # if we access the inner value we and call it with 6
 # then 6 gets added to 4, which makes 10, which we then divide 50 by
 
-fifty.fmap(divide) # at this point we get [->(y) { 50 / y }]
-
-fifty.fmap(divide).fmap(plus_four) # at this point we get: [->(y){ 50 / y + 4 } ]
-
-fifty.fmap(divide).fmap(plus_four).first.call(6) # then we give it 6: [->(6) { 50 / 6 + 4 } ]
-
-# Note our answer is because when we compose
-# we execute from right to left - inner to out.
+fifty.fmap(divide).fmap(plus_four).first.call(6)
 
 
 
@@ -237,20 +225,23 @@ fifty.fmap(divide).fmap(plus_four).first.call(6) # then we give it 6: [->(6) { 5
 
 
 
-# But there is a problem. we dont want to extract the value from the container ^
-# Once we get a lambda inside our array, how can we apply it to a value?
 
 
-fifty.fmap(divide).fmap(plus_four)
+# But there is a problem. we dont want to extract the value from
+# the container Once we get a lambda inside our array,
+# how can we apply it to a value?
 
-# What we really want to do is pass that now wrapped function to our wrapped value:
 
+fifty.fmap(divide).fmap(plus_four) # => [function]
+
+# What we really want to do is pass that now wrapped
+# function to our wrapped value:
+
+# [value].fmap([function])
 
 # [6].fmap(fifty.fmap(divide).fmap(plus_four))
 
-
-
-
+# but this breaks!
 
 
 
@@ -292,8 +283,9 @@ nothing.fmap(identity)
 
 
 # Law 2
-# composing two functions and then mapping the resulting function over a functor
-# should be the same as first mapping one function over the functor and then mapping the other one.
+# composing two functions and then mapping the resulting function
+# over a functor should be the same as first mapping one function
+# over the functor and then mapping the other one.
 
 fifty.fmap(times_two).fmap(plus_four) == fifty.fmap(times_two_plus_four)
 
