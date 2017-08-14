@@ -102,8 +102,23 @@ nothing.apply([times_two]).apply([plus_four])
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Applicative law 1. Identity
-# we get the same answer as if we mapped an unwrapped function over the functor
+# we get the same answer as if we mapped an unwrapped function over
+# the functor
 
 fifty.fmap(times_two) == fifty.apply([times_two])
 
@@ -181,7 +196,15 @@ fifty.apply([times_two]).apply([plus_four]) == fifty.apply([times_two_plus_four]
 
 fifty.apply([times_two, plus_four])
 
+# But most importantly, we can see that our example
+# from before now works!
 
+[6].apply(fifty.fmap(divide).fmap(plus_four))
+
+
+# This is pretty powerful, we can now
+# chain partially applied functions
+# without breaking anything!
 
 
 
